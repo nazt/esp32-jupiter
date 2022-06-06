@@ -1,0 +1,75 @@
+{
+    "name": "IoTeX-blockchain-client",
+    "description": "A simple API client implementation in C++ for the IoTeX blockchain.",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/iotexproject/arduino-sdk"
+    },
+    "version": "0.2.3",
+    "authors": [
+      {
+        "name": "IoTeX",
+        "email": "suppor@iotex.io",
+        "url": "https://iotex.io/"
+      }
+    ],
+    "includeDir": "src",
+    "srcDir": "src",
+    "frameworks": "arduino",
+    "platforms": [
+      "espressif8266",
+      "espressif32",
+      "atmelsam"
+    ],
+    "export": {
+      "include": [
+        "src/*",
+        "include/*",
+        "examples/*",
+        "*.md",
+        "*.json",
+        "*.properties",
+        "LICENSE",
+        "*.ini",
+        "keywords.txt"
+      ],
+      "exclude": [
+        "*/*.txt"
+      ]
+    },
+    "build": {
+        "flags":
+        [
+            "-I src",
+            "-I src/extern",
+            "-I src/extern/nanopb",
+            "-I src/extern/crypto",
+            "-I src/extern/cjson",
+            "-I src/encoder",
+            "-I src/protobuf_files/c_files"
+        ],
+        "srcFilter": 
+        [
+          "+<*>",
+          "+<src/protobuf/c_files/*>",
+          "+<src/extern/*>",
+          "-<src/extern/crypto/aes/aescrypt.c>",
+          "-<src/extern/nanopb/examples/*>",
+          "-<src/extern/nanopb/tests/*>",
+          "-<**/os/*>"
+        ],
+        "libCompatMode": "strict"
+    },
+    "libLDFMode": "deep+",
+    "dependencies":
+    [
+      {
+        "name": "FlashStorage",
+        "platforms": ["atmelsam"]
+      },
+      {
+        "name": "WiFiNINA",
+        "platforms": ["atmelsam"]
+      }
+    ]
+  }

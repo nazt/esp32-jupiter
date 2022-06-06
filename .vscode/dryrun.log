@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/nat/Code/github.com/nazt/esp32-jupiter'
+make: Leaving directory `/Users/nat/Code/github.com/nazt/esp32-jupiter'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+
