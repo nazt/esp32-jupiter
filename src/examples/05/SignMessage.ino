@@ -1,18 +1,14 @@
 #include <Arduino.h>
-#include <Wire.h>
-#include <SPI.h>
+// #include <Wire.h>
+// #include <SPI.h>
 #include "secrets.h"
-#include <HTTPClient.h>
-#include <EEPROM.h>
+// #include <HTTPClient.h>
+// #include <EEPROM.h>
 #include "IoTeX-blockchain-client.h"
 
 void setup()
 {
     Serial.begin(115200);
-
-#if defined(__SAMD21G18A__)
-    delay(5000); // Delay for 5000 seconds to allow a serial connection to be established
-#endif
 }
 
 void loop()
