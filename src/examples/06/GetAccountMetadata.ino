@@ -45,6 +45,12 @@ void setup()
 {
     Serial.begin(115200);
 
+    IotexHelpers.setModuleLogLevel("USER", IotexLogLevel::TRACE);
+    IotexHelpers.setModuleLogLevel("HTTP", IotexLogLevel::TRACE);
+    IotexHelpers.setModuleLogLevel("GENERAL", IotexLogLevel::TRACE);
+    IotexHelpers.setModuleLogLevel("CONTRACT", IotexLogLevel::TRACE);
+
+    IotexHelpers.setGlobalLogLevel(IotexLogLevel::TRACE);
 #if defined(__SAMD21G18A__)
     delay(5000); // Delay for 5000 seconds to allow a serial connection to be established
 #endif
@@ -56,7 +62,7 @@ void setup()
 void loop()
 {
     // The wallet address
-    const char accountStr[] = "io1xkx7y9ygsa3dlmvzzyvv8zm6hd6rmskh4dawyu";
+    const char accountStr[] = "io1yuc95y0sq28eqd2h9dm0083lzh77qyrefxyjy7";
 
     // Query the account metadata
     AccountMeta accountMeta;
