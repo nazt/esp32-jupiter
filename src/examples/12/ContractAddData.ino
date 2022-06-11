@@ -84,6 +84,25 @@ void loop()
 
     // Get the account nonce
     originAccount.getIotexAddress(originIotexAddr);
+
+    // Get the account nonce
+    originAccount.getIotexAddress(originIotexAddr);
+
+    char publicKeyBuf[IOTEX_PUBLIC_KEY_C_STRING_SIZE] = {0};
+    char privateKeyBuf[IOTEX_PRIVATE_KEY_C_STRING_SIZE] = {0};
+    char ethAddressBuf[ETH_ADDRESS_C_STRING_SIZE] = {0};
+    char ioAddressBuf[IOTEX_ADDRESS_C_STRING_SIZE] = {0};
+
+    // Get the account details
+    originAccount.getPublicKeyString(publicKeyBuf);
+    originAccount.getPrivateKeyString(privateKeyBuf);
+    originAccount.getEthereumAddress(ethAddressBuf);
+    originAccount.getIotexAddress(ioAddressBuf);
+    Serial.printf("Public Key: %s\n", publicKeyBuf);
+    Serial.printf("Ethereum Address: %s\n", ethAddressBuf);
+    Serial.printf("IoTeX Address: %s\n", ioAddressBuf);
+    Serial.printf("contract Address: %s\n", contractAddress);
+
     ResultCode result = connection.api.wallets.getAccount(originIotexAddr, accMeta);
     if (result != ResultCode::SUCCESS)
     {
@@ -117,7 +136,7 @@ void loop()
     uint8_t hash[IOTEX_HASH_SIZE] = {0};
     // 0xc47f0027000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000045961792100000000000000000000000000000000000000000000000000000000
     // 0xc47f00270000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000548656c6c6f000000000000000000000000000000000000000000000000000000
-    result = originAccount.sendExecutionAction(connection, nonce, 20000000, "1000000000000", "0", contractAddress, callData, hash);
+    result = originAccount.sendExecutionAction(connection, nonce, 1000000, "1000000000000", "0", contractAddress, callData, hash);
 
     Serial.print("Result: ");
     Serial.println(IotexHelpers.GetResultString(result));

@@ -62,7 +62,7 @@ void setup()
 void loop()
 {
     // The wallet address
-    const char accountStr[] = "io1yuc95y0sq28eqd2h9dm0083lzh77qyrefxyjy7";
+    const char accountStr[] = "io1703cc4ffyudqung5jq934ntsjsce2nv5tnd4xh";
 
     // Query the account metadata
     AccountMeta accountMeta;
