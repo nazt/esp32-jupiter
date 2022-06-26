@@ -34,7 +34,7 @@ Connection<Api> connection(ip, port, baseUrl);
 
 #include <WiFiClientSecure.h>
 
-const char* rootCACertificate = R("");
+const char *rootCACertificate = R("");
 
 void initWiFi()
 {
@@ -106,7 +106,7 @@ void loop()
     char pubWtf[IOTEX_PUBLIC_KEY_SIZE] = {0};
 
     // Get the account details
-    originAccount.getPublicKey((uint8_t*)pubWtf);
+    originAccount.getPublicKey((uint8_t *)pubWtf);
     originAccount.getPublicKeyString(publicKeyBuf);
     originAccount.getPrivateKeyString(privateKeyBuf);
     originAccount.getEthereumAddress(ethAddressBuf);
@@ -152,49 +152,49 @@ void loop()
     result = originAccount.sendExecutionAction(connection, nonce, 1000000, "1000000000000", "0", contractAddress, callData, hash);
 
     responsetypes::ActionCore_Execution core;
-		core.version = 1;
-		core.gasLimit = 1000000;
-		core.nonce = nonce;
-		strcpy(core.gasPrice, "1000000000000");
-		strcpy(core.execution.amount, "0");
-		strcpy(core.execution.contract, contractAddress);
-		core.execution.data = callData;
+    core.version = 1;
+    core.gasLimit = 1000000;
+    core.nonce = nonce;
+    strcpy(core.gasPrice, "1000000000000");
+    strcpy(core.execution.amount, "0");
+    strcpy(core.execution.contract, contractAddress);
+    core.execution.data = callData;
 
-        Serial.print("Signed data: ");
+    Serial.print("Signed data: ");
 
-		// rpc::Wallets::sendExecution(this->host_, execution, senderPubKey, signature);
+    // rpc::Wallets::sendExecution(this->host_, execution, senderPubKey, signature);
 
-    	uint8_t signature[IOTEX_SIGNATURE_SIZE] = {0};
-        // print signature hex
-        Serial.println("===========");
-        for (int i = 0; i < IOTEX_SIGNATURE_SIZE; i++)
-        {
-            Serial.printf("%02x", signature[i]);
-        }
-        Serial.println("===========");
-		// originAccount.signMessage((const uint8_t*)"hello", 5, signature);
-        Serial.println('callDarta');
-        Serial.println(callData);
+    uint8_t signature[IOTEX_SIGNATURE_SIZE] = {0};
+    // print signature hex
+    Serial.println("===========");
+    for (int i = 0; i < IOTEX_SIGNATURE_SIZE; i++)
+    {
+        Serial.printf("%02x", signature[i]);
+    }
+    Serial.println("===========");
+    // originAccount.signMessage((const uint8_t*)"hello", 5, signature);
+    Serial.println('callDarta');
+    Serial.println(callData);
 
-		originAccount.signMessage((const uint8_t*) callData.c_str(), callData.length(), signature);
-		// originAccount.signExecutionAction(core, signature);
-        Serial.println("===========");
-        for (int i = 0; i < IOTEX_SIGNATURE_SIZE; i++)
-        {
-            Serial.printf("%02x", signature[i]);
-        }
-        Serial.println("===========");
-	rpc::RpcCallData callDataX = rpc::Wallets::sendExecution(connection.host, core, (const uint8_t*) pubWtf, signature);
-        Serial.println("KKKKKKKK");
-        Serial.println("KKKKKKKK");
-        Serial.println("KKKKKKKK");
-        for (int i = 0; i < IOTEX_SIGNATURE_SIZE; i++)
-        {
-            Serial.printf("%02x", signature[i]);
-        }
-        Serial.println("KKKKKKKK");
-        Serial.println("KKKKKKKK");
-        Serial.println("KKKKKKKK");
+    originAccount.signMessage((const uint8_t *)callData.c_str(), callData.length(), signature);
+    // originAccount.signExecutionAction(core, signature);
+    Serial.println("===========");
+    for (int i = 0; i < IOTEX_SIGNATURE_SIZE; i++)
+    {
+        Serial.printf("%02x", signature[i]);
+    }
+    Serial.println("===========");
+    rpc::RpcCallData callDataX = rpc::Wallets::sendExecution(connection.host, core, (const uint8_t *)pubWtf, signature);
+    Serial.println("KKKKKKKK");
+    Serial.println("KKKKKKKK");
+    Serial.println("KKKKKKKK");
+    for (int i = 0; i < IOTEX_SIGNATURE_SIZE; i++)
+    {
+        Serial.printf("%02x", signature[i]);
+    }
+    Serial.println("KKKKKKKK");
+    Serial.println("KKKKKKKK");
+    Serial.println("KKKKKKKK");
     Serial.println("HELLLLLLLLLLLLLLL:");
     Serial.println(callDataX.body);
     Serial.print("Result: ");
