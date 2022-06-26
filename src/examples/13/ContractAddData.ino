@@ -25,16 +25,6 @@ constexpr const char wifiPass[] = SECRET_WIFI_PASS;
 
 // Create the IoTeX client connection
 Connection<Api> connection(ip, port, baseUrl);
-#include <Arduino.h>
-
-#include <WiFi.h>
-#include <WiFiMulti.h>
-
-#include <HTTPClient.h>
-
-#include <WiFiClientSecure.h>
-
-const char* rootCACertificate = R("");
 
 void initWiFi()
 {
@@ -50,6 +40,51 @@ void initWiFi()
     }
     Serial.println(F("Connected. IP: "));
     Serial.println(WiFi.localIP());
+}
+
+
+const char* rootCACertificate = R"(-----BEGIN CERTIFICATE-----
+MIIDzTCCArWgAwIBAgIQCjeHZF5ftIwiTv0b7RQMPDANBgkqhkiG9w0BAQsFADBa
+MQswCQYDVQQGEwJJRTESMBAGA1UEChMJQmFsdGltb3JlMRMwEQYDVQQLEwpDeWJl
+clRydXN0MSIwIAYDVQQDExlCYWx0aW1vcmUgQ3liZXJUcnVzdCBSb290MB4XDTIw
+MDEyNzEyNDgwOFoXDTI0MTIzMTIzNTk1OVowSjELMAkGA1UEBhMCVVMxGTAXBgNV
+BAoTEENsb3VkZmxhcmUsIEluYy4xIDAeBgNVBAMTF0Nsb3VkZmxhcmUgSW5jIEVD
+QyBDQS0zMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEua1NZpkUC0bsH4HRKlAe
+nQMVLzQSfS2WuIg4m4Vfj7+7Te9hRsTJc9QkT+DuHM5ss1FxL2ruTAUJd9NyYqSb
+16OCAWgwggFkMB0GA1UdDgQWBBSlzjfq67B1DpRniLRF+tkkEIeWHzAfBgNVHSME
+GDAWgBTlnVkwgkdYzKz6CFQ2hns6tQRN8DAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0l
+BBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMBIGA1UdEwEB/wQIMAYBAf8CAQAwNAYI
+KwYBBQUHAQEEKDAmMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdpY2VydC5j
+b20wOgYDVR0fBDMwMTAvoC2gK4YpaHR0cDovL2NybDMuZGlnaWNlcnQuY29tL09t
+bmlyb290MjAyNS5jcmwwbQYDVR0gBGYwZDA3BglghkgBhv1sAQEwKjAoBggrBgEF
+BQcCARYcaHR0cHM6Ly93d3cuZGlnaWNlcnQuY29tL0NQUzALBglghkgBhv1sAQIw
+CAYGZ4EMAQIBMAgGBmeBDAECAjAIBgZngQwBAgMwDQYJKoZIhvcNAQELBQADggEB
+AAUkHd0bsCrrmNaF4zlNXmtXnYJX/OvoMaJXkGUFvhZEOFp3ArnPEELG4ZKk40Un
++ABHLGioVplTVI+tnkDB0A+21w0LOEhsUCxJkAZbZB2LzEgwLt4I4ptJIsCSDBFe
+lpKU1fwg3FZs5ZKTv3ocwDfjhUkV+ivhdDkYD7fa86JXWGBPzI6UAPxGezQxPk1H
+goE6y/SJXQ7vTQ1unBuCJN0yJV0ReFEQPaA1IwQvZW+cwdFD19Ae8zFnWSfda9J1
+CZMRJCQUzym+5iPDuI9yP+kHyCREU3qzuWFloUwOxkgAyXVjBYdwRVKD05WdRerw
+6DEdfgkfCv4+3ao8XnTSrLE=
+-----END CERTIFICATE-----)";
+// Not sure if WiFiClientSecure checks the validity date of the certificate.
+// Setting clock just to be sure...
+void setClock() {
+  configTime(0, 0, "pool.ntp.org");
+
+  Serial.print(F("Waiting for NTP time sync: "));
+  time_t nowSecs = time(nullptr);
+  while (nowSecs < 8 * 3600 * 2) {
+    delay(500);
+    Serial.print(F("."));
+    yield();
+    nowSecs = time(nullptr);
+  }
+
+  Serial.println();
+  struct tm timeinfo;
+  gmtime_r(&nowSecs, &timeinfo);
+  Serial.print(F("Current time: "));
+  Serial.print(asctime(&timeinfo));
 }
 
 void setup()
@@ -68,6 +103,56 @@ void setup()
 
     // Connect to the wifi network
     initWiFi();
+    setClock();
+}
+#include <HTTPClient.h>
+
+#include <WiFiClientSecure.h>
+
+void post(String data) {
+  WiFiClientSecure *client = new WiFiClientSecure;
+  if(client) {
+    client -> setCACert(rootCACertificate);
+    {
+      // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is
+      HTTPClient https;
+      https.addHeader("Content-Type", "application/json");
+    //   https.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+      Serial.print("[HTTPS] begin...\n");
+      if (https.begin(*client, "https://hono-boilerplate.laris.workers.dev/proxy/4690")) {  // HTTPS
+        Serial.print("[HTTPS] POST...\n");
+        // start connection and send HTTP header
+        Serial.printf("post data is %s\n", data.c_str());
+        int httpCode = https.POST(data);
+        // int httpCode = https.GET();
+
+        // httpCode will be negative on error
+        if (httpCode > 0) {
+          // HTTP header has been send and Server response header has been handled
+          Serial.printf("[HTTPS] POST... code: %d\n", httpCode);
+
+          // file found at server
+          if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
+            String payload = https.getString();
+            Serial.println(payload);
+          }
+        } else {
+          Serial.printf("[HTTPS] POST... failed, error: %s\n", https.errorToString(httpCode).c_str());
+        }
+
+        https.end();
+      } else {
+        Serial.printf("[HTTPS] Unable to connect\n");
+      }
+
+      // End extra scoping block
+    }
+
+    delete client;
+  } else {
+    Serial.println("Unable to create client");
+  }
 }
 
 void loop()
@@ -75,9 +160,9 @@ void loop()
     // Private key of the origin address
     const char pK[] = SECRET_PRIVATE_KEY;
     // Contract address
-    const char contractAddress[] = "io124np95tfj0k3jlsyhlxdu8mxt5dh3za0924x3u";
+    const char contractAddress[] = "io1lxxqm4wse62qwxqr0js28trpe675g7vy638s4f";
     // Imei
-    String name = "aaa";
+    String name = "GG WTF GOOD!";
     // Data
     // uint8_t data[] = {0x01, 0x02, 0x03, 0x04};
     // Signature
@@ -132,7 +217,7 @@ void loop()
 
     // Create parameter values dictionary
     ParameterValuesDictionary params;
-    params.AddParameter("name", paramName);
+    params.AddParameter("_greeting", paramName);
     // params.AddParameter("data", paramData);
     // params.AddParameter("signature", paramSig);
 
@@ -142,7 +227,7 @@ void loop()
 
     // Generate call data
     String callData = "";
-    contract.generateCallData("setName", params, callData);
+    contract.generateCallData("setGreeting", params, callData);
     Serial.print("Calling contract with data: 0x%");
     Serial.println(callData);
 
@@ -172,9 +257,10 @@ void loop()
             Serial.printf("%02x", signature[i]);
         }
         Serial.println("===========");
-		// originAccount.signMessage((const uint8_t*)"hello", 5, signature);
-        Serial.println('callDarta');
+        Serial.println('callData');
         Serial.println(callData);
+
+		// originAccount.signMessage((const uint8_t*)"hello", 5, signature);
 
 		originAccount.signMessage((const uint8_t*) callData.c_str(), callData.length(), signature);
 		// originAccount.signExecutionAction(core, signature);
@@ -197,21 +283,26 @@ void loop()
         Serial.println("KKKKKKKK");
     Serial.println("HELLLLLLLLLLLLLLL:");
     Serial.println(callDataX.body);
-    Serial.print("Result: ");
-    Serial.println(IotexHelpers.GetResultString(result));
-    if (result == ResultCode::SUCCESS)
-    {
-        Serial.print("Hash: ");
-        for (int i = 0; i < IOTEX_HASH_SIZE; i++)
-        {
-            char buf[3] = "";
-            sprintf(buf, "%02x", hash[i]);
-            Serial.print(buf);
-        }
-        Serial.println();
-    }
+    // Serial.print("Result: ");
+    post(callDataX.body);
+    // Serial.println(IotexHelpers.GetResultString(result));
+    // if (result == ResultCode::SUCCESS)
+    // {
+    //     Serial.print("Hash: ");
+    //     for (int i = 0; i < IOTEX_HASH_SIZE; i++)
+    //     {
+    //         char buf[3] = "";
+    //         sprintf(buf, "%02x", hash[i]);
+    //         Serial.print(buf);
+    //     }
+    //     Serial.println();
+    // }
 
     Serial.println("Program finished");
+    // deepSleep for 1 Minute
+    // ESP.deepSleep(60000000);
+    // deepSleep for 30 seconds
+    ESP.deepSleep(30000000);
     while (true)
     {
         delay(10000);
