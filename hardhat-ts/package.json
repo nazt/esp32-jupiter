@@ -6,7 +6,6 @@
     "main": "dist/src/index.js",
     "types": "dist/src/index.d.ts",
     "scripts": {
-        "postinstall": "yarn generate",
         "compile": "hardhat compile",
         "test": "hardhat test",
         "generate": "shx mkdir -p generated && hardhat generate",

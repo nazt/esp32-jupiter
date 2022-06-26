@@ -1,9 +1,8 @@
-import { network } from "hardhat"
+import { ethers, network } from "hardhat"
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
-const { ethers } = require("hardhat")
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    const { deployments, getNamedAccounts, network } = hre as any
+    const { deployments, getNamedAccounts, network } = hre
     const { deploy } = deployments
     const { deployer } = await getNamedAccounts()
 
