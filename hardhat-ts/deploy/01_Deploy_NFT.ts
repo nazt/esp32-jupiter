@@ -3,8 +3,8 @@ import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 const { ethers } = require("hardhat")
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    const { deployments, getNamedAccounts, network } = hre
-    const { deploy, execute } = deployments
+    const { deployments, getNamedAccounts, network } = hre as any
+    const { deploy } = deployments
     const { deployer } = await getNamedAccounts()
 
     // const DustBoyNFTContract = await ethers.getContractFactory("DustBoyNFT");
