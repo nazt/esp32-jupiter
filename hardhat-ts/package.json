@@ -6,10 +6,11 @@
     "main": "dist/src/index.js",
     "types": "dist/src/index.d.ts",
     "scripts": {
+        "postinstall": "yarn generate",
         "compile": "hardhat compile",
         "test": "hardhat test",
-        "generate": "hardhat generate",
-        "account": "hardhat account",
+        "generate": "shx mkdir -p generated && hardhat generate",
+        "balance": "hardhat balance",
         "deploy": "hardhat deploy",
         "node": "hardhat node",
         "webconfig:mumbai": "mustache generated/deployments/mumbai/MyNFT.json ../nft-web/src/config/addresses.template.ts > ../nft-web/src/config/addresses.ts",
@@ -19,8 +20,6 @@
         "build:ts": "tsc -p tsconfig.json",
         "build:sol": "hardhat compile",
         "build:declarations": "echo 'hello' /*shx cp typechain/*.ts dist/typechain*/",
-        "lint:fix": "prettier --write 'scripts/**/*.{js,ts}' 'test/**/*.{js,ts}' 'tasks/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json && solhint contracts/**/*.sol",
-        "lint": "tslint --config tslint.json --project tsconfig.json && solhint contracts/**/*.sol",
         "format": "prettier --check \"**/*.{ts,js,sol}\"",
         "format:fix": "prettier --write \"**/*.{ts,js,sol}\""
     },
