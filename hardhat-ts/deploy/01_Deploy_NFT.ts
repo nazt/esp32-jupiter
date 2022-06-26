@@ -1,6 +1,8 @@
 import { ethers, network } from "hardhat"
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
+
+const TAG = 'DustBoyNFT'
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployments, getNamedAccounts, network } = hre
     const { deploy } = deployments
@@ -9,21 +11,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // const DustBoyNFTContract = await ethers.getContractFactory("DustBoyNFT");
     // const DustBoyNFT = await DustBoyNFTContract.deploy();
     // await DustBoyNFT.deployed();
+    // const deployedContract = await ethers.getContract(NAME)
 
-    const NAME = 'DustBoyNFT'
     const args: any[] = []
-    await deploy(NAME, {
-        contract: NAME,
+    const result = await deploy(TAG, {
+        contract: TAG,
         from: deployer,
         args,
         log: true,
     })
 
-
-    const deployedContract = await ethers.getContract(NAME)
-
     console.log(
-        `npx hardhat verify ${deployedContract.address} ${args
+        `npx hardhat verify ${result.address} ${args
             .map(arg => `"${arg}"`)
             .join(" ")} --network ${network.name}`,
     )
@@ -31,5 +30,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 }
 
 export default func
-func.tags = ["DustBoyNFT"]
+func.tags = [TAG]
 
