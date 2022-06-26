@@ -18,23 +18,35 @@ contract OracleNFT is ERC721Enumerable, IERC2981, ReentrancyGuard, Ownable {
     //     Counters.Counter supply;
     // }
     struct Sensor {
-        uint256 field1;
-        uint256 field2;
+        uint256 temp;
+        uint256 humid;
         uint256 field3;
         uint256 field4;
     }
 
+    uint256 temp;
+    uint256 humid;
+
     mapping(uint256 => Sensor) public sensors;
+    event AmbientChanged(uint256 id, uint256 temp, uint256 humid);
 
     constructor() ERC721("OracleNFT", "ORC") {
         customBaseURI = "https://dustboy-metadata.laris.workers.dev/";
     }
 
+    function setTempAndHumid(uint256 _tokenId, uint256 _temp, uint256 _humid) public {
+        sensors[_tokenId].temp = _temp;
+        sensors[_tokenId].humid = _humid;
+        emit AmbientChanged(_tokenId, _temp, _humid);
+    }
+
     function setSensor(uint256 _tokenId, Sensor calldata s) public {
         require(ownerOf(_tokenId) == msg.sender);
-        sensors[_tokenId].field1 = s.field1;
-        sensors[_tokenId].field2 = s.field2;
-        sensors[_tokenId].field2 = s.field3;
+        // require deployer
+        sensors[_tokenId].temp = s.temp;
+        sensors[_tokenId].humid = s.humid;
+        sensors[_tokenId].field3 = s.field3;
+        sensors[_tokenId].field4 = s.field4;
     }
 
     /** MINTING **/

@@ -1,7 +1,7 @@
 import { ethers, network } from "hardhat"
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
-
+import { from } from "@iotexproject/iotex-address-ts";
 const TAG = 'DustBoyNFT'
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployments, getNamedAccounts, network } = hre
@@ -26,6 +26,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             .map(arg => `"${arg}"`)
             .join(" ")} --network ${network.name}`,
     )
+
+    console.log(`iotexAddress: ${from(result.address)}`)
 
 }
 

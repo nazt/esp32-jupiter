@@ -8,6 +8,31 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "temp",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "humid",
+        "type": "uint256"
+      }
+    ],
+    "name": "AmbientChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "owner",
@@ -361,12 +386,12 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "field1",
+        "name": "temp",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "field2",
+        "name": "humid",
         "type": "uint256"
       },
       {
@@ -438,12 +463,12 @@
         "components": [
           {
             "internalType": "uint256",
-            "name": "field1",
+            "name": "temp",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "field2",
+            "name": "humid",
             "type": "uint256"
           },
           {
@@ -463,6 +488,29 @@
       }
     ],
     "name": "setSensor",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_temp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_humid",
+        "type": "uint256"
+      }
+    ],
+    "name": "setTempAndHumid",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

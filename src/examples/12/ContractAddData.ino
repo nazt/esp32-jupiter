@@ -43,10 +43,14 @@ void initWiFi()
 #endif
     WiFi.begin(wifiSsid, wifiPass);
     Serial.print(F("Connecting to WiFi .."));
+    uint32_t counter = 0;
     while (WiFi.status() != WL_CONNECTED)
     {
         Serial.print('.');
         delay(1000);
+        if (counter++ >= 100) {
+            ESP.deepSleep(1);
+        }
     }
     Serial.println(F("Connected. IP: "));
     Serial.println(WiFi.localIP());
@@ -75,7 +79,7 @@ void loop()
     // Private key of the origin address
     const char pK[] = SECRET_PRIVATE_KEY;
     // Contract address
-    const char contractAddress[] = "io124np95tfj0k3jlsyhlxdu8mxt5dh3za0924x3u";
+    const char contractAddress[] = "io1mql0rea4sxlvxaf4gq8gest487nppksfz9psc8";
     // Imei
     String name = "aaa";
     // Data
@@ -152,9 +156,9 @@ void loop()
     result = originAccount.sendExecutionAction(connection, nonce, 1000000, "1000000000000", "0", contractAddress, callData, hash);
 
     responsetypes::ActionCore_Execution core;
-    core.version = 1;
+    // core.version = 1;
     core.gasLimit = 1000000;
-    core.nonce = nonce;
+    core.nonce = 170;
     strcpy(core.gasPrice, "1000000000000");
     strcpy(core.execution.amount, "0");
     strcpy(core.execution.contract, contractAddress);

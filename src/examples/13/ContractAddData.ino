@@ -69,7 +69,7 @@ CZMRJCQUzym+5iPDuI9yP+kHyCREU3qzuWFloUwOxkgAyXVjBYdwRVKD05WdRerw
 // Setting clock just to be sure...
 void setClock()
 {
-  configTime(0, 0, "pool.ntp.org");
+  configTime(7*3600, 0, "pool.ntp.org");
 
   Serial.print(F("Waiting for NTP time sync: "));
   time_t nowSecs = time(nullptr);
@@ -91,12 +91,12 @@ void setClock()
 void setup()
 {
   Serial.begin(115200);
-  IotexHelpers.setModuleLogLevel("USER", IotexLogLevel::TRACE);
-  IotexHelpers.setModuleLogLevel("HTTP", IotexLogLevel::TRACE);
-  IotexHelpers.setModuleLogLevel("GENERAL", IotexLogLevel::TRACE);
-  IotexHelpers.setModuleLogLevel("CONTRACT", IotexLogLevel::TRACE);
+  IotexHelpers.setModuleLogLevel("USER", IotexLogLevel::INFO);
+  IotexHelpers.setModuleLogLevel("HTTP", IotexLogLevel::INFO);
+  IotexHelpers.setModuleLogLevel("GENERAL", IotexLogLevel::INFO);
+  IotexHelpers.setModuleLogLevel("CONTRACT", IotexLogLevel::INFO);
 
-  IotexHelpers.setGlobalLogLevel(IotexLogLevel::TRACE);
+  IotexHelpers.setGlobalLogLevel(IotexLogLevel::INFO);
 
 #if defined(__SAMD21G18A__)
   delay(5000); // Delay for 5000 seconds to allow a serial connection to be established
@@ -117,7 +117,6 @@ void post(String data)
   {
     client->setCACert(rootCACertificate);
     {
-      // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is
       HTTPClient https;
       https.addHeader("Content-Type", "application/json");
       //   https.addHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -127,7 +126,7 @@ void post(String data)
       { // HTTPS
         Serial.print("[HTTPS] POST...\n");
         // start connection and send HTTP header
-        Serial.printf("post data is %s\n", data.c_str());
+        // Serial.printf("post data is %s\n", data.c_str());
         int httpCode = https.POST(data);
         // int httpCode = https.GET();
 
@@ -141,6 +140,7 @@ void post(String data)
           if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY)
           {
             String payload = https.getString();
+            Serial.print("RESP: ");
             Serial.println(payload);
           }
         }
@@ -170,30 +170,16 @@ void post(String data)
 void loop()
 {
   // Private key of the origin address
-  const char pK[] = SECRET_PRIVATE_KEY;
+  const char PK_CHARS[] = SECRET_PRIVATE_KEY;
   // Contract address
-  const char contractAddress[] = "io1lxxqm4wse62qwxqr0js28trpe675g7vy638s4f";
-  // Imei
-  String name = "GG WTF GOOD!";
-  // Data
-  // uint8_t data[] = {0x01, 0x02, 0x03, 0x04};
-  // Signature
-  // uint8_t signature[] = {0x05, 0x06, 0x07, 0x08};
-
-  // Convert the privte key to a byte array
+  const char contractAddress[] = "io1mql0rea4sxlvxaf4gq8gest487nppksfz9psc8";
   uint8_t pk[IOTEX_PRIVATE_KEY_SIZE];
-  signer.str2hex(pK, pk, IOTEX_PRIVATE_KEY_SIZE);
+  signer.str2hex(PK_CHARS, pk, IOTEX_PRIVATE_KEY_SIZE);
 
   // Create the account
   Account originAccount(pk);
   AccountMeta accMeta;
-  char originIotexAddr[IOTEX_ADDRESS_C_STRING_SIZE] = "";
-
-  // Get the account nonce
-  originAccount.getIotexAddress(originIotexAddr);
-
-  // Get the account nonce
-  // originAccount.getEthereumAddress(originEthAddr);
+  int nonce = 0;
 
   char publicKeyBuf[IOTEX_PUBLIC_KEY_C_STRING_SIZE] = {0};
   char privateKeyBuf[IOTEX_PRIVATE_KEY_C_STRING_SIZE] = {0};
@@ -213,25 +199,13 @@ void loop()
   Serial.printf("IoTeX Address: %s\n", ioAddressBuf);
   Serial.printf("contract Address: %s\n", contractAddress);
 
-  ResultCode result = connection.api.wallets.getAccount(originIotexAddr, accMeta);
-  if (result != ResultCode::SUCCESS)
-  {
-    Serial.print("Error getting account meta: ");
-    Serial.print(IotexHelpers.GetResultString(result));
-  }
-  int nonce = atoi(accMeta.pendingNonce.c_str());
-
-  // Contruct the action
-  // Create the parameters
-  ParameterValue paramName = MakeParamString(name);
-  // ParameterValue paramData = MakeParamBytes(data, sizeof(data), true);
-  // ParameterValue paramSig = MakeParamBytes(signature, sizeof(signature), true);
-
-  // Create parameter values dictionary
+  ParameterValue tokenId = MakeParamUint(1);
+  ParameterValue temp = MakeParamUint(2);
+  ParameterValue humid = MakeParamUint(3);
   ParameterValuesDictionary params;
-  params.AddParameter("_greeting", paramName);
-  // params.AddParameter("data", paramData);
-  // params.AddParameter("signature", paramSig);
+  params.AddParameter("_tokenId", tokenId);
+  params.AddParameter("_temp", temp);
+  params.AddParameter("_humid", humid);
 
   // Create the contract
   String abi = addDataAbiJson;
@@ -239,13 +213,12 @@ void loop()
 
   // Generate call data
   String callData = "";
-  contract.generateCallData("setGreeting", params, callData);
-  Serial.print("Calling contract with data: 0x%");
+  contract.generateCallData("setTempAndHumid", params, callData);
+  Serial.print("Calling contract with data: ");
   Serial.println(callData);
 
   uint8_t hash[IOTEX_HASH_SIZE] = {0};
 
-  result = originAccount.sendExecutionAction(connection, nonce, 1000000, "1000000000000", "0", contractAddress, callData, hash);
 
   responsetypes::ActionCore_Execution core;
   core.version = 1;
@@ -256,41 +229,48 @@ void loop()
   strcpy(core.execution.contract, contractAddress);
   core.execution.data = callData;
 
-  Serial.print("Signed data: ");
-
   // rpc::Wallets::sendExecution(this->host_, execution, senderPubKey, signature);
 
   uint8_t signature[IOTEX_SIGNATURE_SIZE] = {0};
-  // print signature hex
-  Serial.println("===========");
-  for (int i = 0; i < IOTEX_SIGNATURE_SIZE; i++)
-  {
-    Serial.printf("%02x", signature[i]);
-  }
-  Serial.println("===========");
-  Serial.println('callData');
-  Serial.println(callData);
-
   // originAccount.signMessage((const uint8_t*)"hello", 5, signature);
 
   originAccount.signMessage((const uint8_t *)callData.c_str(), callData.length(), signature);
   // originAccount.signExecutionAction(core, signature);
   Serial.println("===========");
-  for (int i = 0; i < IOTEX_SIGNATURE_SIZE; i++)
-  {
-    Serial.printf("%02x", signature[i]);
-  }
-  Serial.println("===========");
+
   rpc::RpcCallData callDataX = rpc::Wallets::sendExecution(connection.host, core, (const uint8_t *)pubWtf, signature);
+  Serial.println("=== SIG SELF SIGN ===");
   for (int i = 0; i < IOTEX_SIGNATURE_SIZE; i++)
   {
     Serial.printf("%02x", signature[i]);
   }
+  Serial.println();
+  uint8_t h[IOTEX_HASH_SIZE] = {0};
+  // rpc::RpcCallData callDataX =
+  // connection.api.wallets.sendExecution((const uint8_t *)pubWtf,signature, core, h);
+
+  Serial.println("=== SIG iotex sendExecution ===");
+  for (int i = 0; i < IOTEX_SIGNATURE_SIZE; i++)
+  {
+    Serial.printf("%02x", signature[i]);
+  }
+  Serial.println();
+  Serial.println("===========================");
+  // debug hash
+  for (int i = 0; i < IOTEX_HASH_SIZE; i++)
+  {
+    Serial.printf("%02x", h[i]);
+  }
+  Serial.println();
+  Serial.println("===========================");
+  Serial.println("===========================");
+  // Serial.println(callDataX.body);
+  // Serial.print("Result: ");
+  Serial.println(callDataX.url);
   post(callDataX.body);
 
   Serial.println("Program finished");
-  // deepSleep for 1 Minute
-  // ESP.deepSleep(60000000);
+
   // deepSleep for 30 seconds
   ESP.deepSleep(30000000);
   while (true)
