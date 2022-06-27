@@ -16,6 +16,7 @@
 #include "IoTeX-blockchain-client.h"
 #include "secrets.h"
 #include "addDataAbi.h"
+#include <Jupiter.hpp>
 
 constexpr const char ip[] = "gateway.iotexlab.io";
 constexpr const char baseUrl[] = "iotexapi.APIService";
@@ -26,6 +27,9 @@ constexpr const char wifiPass[] = SECRET_WIFI_PASS;
 // Create the IoTeX client connection
 Connection<Api> connection(ip, port, baseUrl);
 
+const int led_wifi_pin = 19;
+const int led_cloud_pin = 2;
+
 void initWiFi()
 {
 #if defined(ESP8266) || defined(ESP32)
@@ -33,13 +37,22 @@ void initWiFi()
 #endif
   WiFi.begin(wifiSsid, wifiPass);
   Serial.print(F("Connecting to WiFi .."));
+  // counter
+  int counter = 0;
   while (WiFi.status() != WL_CONNECTED)
   {
+    if (counter++ > 2000)
+    {
+      Serial.println(F("Failed to connect to WiFi"));
+      ESP.deepSleep(1);
+    }
+    digitalWrite(led_wifi_pin, !digitalRead(led_wifi_pin));
     Serial.print('.');
-    delay(1000);
+    delay(100);
   }
   Serial.println(F("Connected. IP: "));
   Serial.println(WiFi.localIP());
+  digitalWrite(led_wifi_pin, HIGH);
 }
 
 const char *rootCACertificate = R"(-----BEGIN CERTIFICATE-----
@@ -69,13 +82,20 @@ CZMRJCQUzym+5iPDuI9yP+kHyCREU3qzuWFloUwOxkgAyXVjBYdwRVKD05WdRerw
 // Setting clock just to be sure...
 void setClock()
 {
-  configTime(7*3600, 0, "pool.ntp.org");
+  configTime(7 * 3600, 0, "pool.ntp.org");
 
   Serial.print(F("Waiting for NTP time sync: "));
   time_t nowSecs = time(nullptr);
+  // counter
+  int i = 0;
   while (nowSecs < 8 * 3600 * 2)
   {
-    delay(500);
+    digitalWrite(led_cloud_pin, !digitalRead(led_cloud_pin));
+    if (i++ > 100)
+    {
+      ESP.deepSleep(1);
+    }
+    delay(100);
     Serial.print(F("."));
     yield();
     nowSecs = time(nullptr);
@@ -86,21 +106,45 @@ void setClock()
   gmtime_r(&nowSecs, &timeinfo);
   Serial.print(F("Current time: "));
   Serial.print(asctime(&timeinfo));
+  digitalWrite(led_cloud_pin, LOW);
+  digitalWrite(led_wifi_pin, LOW);
 }
 
+static Jupiter jupiter;
+const int i2c_scl_pin = 5;
+const int i2c_sda_pin = 4;
+const uint8_t i2c_lis2d_addr = 0x31;
+const uint8_t i2c_lm75_addr = 0x48;
+Generic_LM75_9_to_12Bit_OneShot_Compatible lm75(&Wire, i2c_lm75_addr, &Generic_LM75_11Bit_Attributes);
+LIS2DW12Sensor Accelero(&Wire, i2c_lis2d_addr);
 void setup()
 {
+  pinMode(led_cloud_pin, OUTPUT);
+  pinMode(led_wifi_pin, OUTPUT);
   Serial.begin(115200);
+  Wire.begin(i2c_sda_pin, i2c_scl_pin);
+  Wire.setClock(400000);
+  delay(100);
+
+   Serial.println("Starting temperature conversion...");
+    // lm75.startOneShotConversion();
+    lm75.disableShutdownMode();
+    delay(100);
+    Serial.print("temperature is: ");
+    Serial.print(lm75.readTemperatureC());
+    Serial.print(" C  ");
+    lm75.enableShutdownMode();
+
+  // lm75.disableShutdownMode();
+  // lm75.enableOneShotMode();
+
+
   IotexHelpers.setModuleLogLevel("USER", IotexLogLevel::INFO);
   IotexHelpers.setModuleLogLevel("HTTP", IotexLogLevel::INFO);
   IotexHelpers.setModuleLogLevel("GENERAL", IotexLogLevel::INFO);
   IotexHelpers.setModuleLogLevel("CONTRACT", IotexLogLevel::INFO);
 
   IotexHelpers.setGlobalLogLevel(IotexLogLevel::INFO);
-
-#if defined(__SAMD21G18A__)
-  delay(5000); // Delay for 5000 seconds to allow a serial connection to be established
-#endif
 
   // Connect to the wifi network
   initWiFi();
@@ -172,7 +216,7 @@ void loop()
   // Private key of the origin address
   const char PK_CHARS[] = SECRET_PRIVATE_KEY;
   // Contract address
-  const char contractAddress[] = "io1mql0rea4sxlvxaf4gq8gest487nppksfz9psc8";
+  const char contractAddress[] = "io1d3wc0r7mqcu2vxwt3ax20xefw567jh6my8ryz7";
   uint8_t pk[IOTEX_PRIVATE_KEY_SIZE];
   signer.str2hex(PK_CHARS, pk, IOTEX_PRIVATE_KEY_SIZE);
 
@@ -199,9 +243,32 @@ void loop()
   Serial.printf("IoTeX Address: %s\n", ioAddressBuf);
   Serial.printf("contract Address: %s\n", contractAddress);
 
+  // Wire.begin(4, 5);
+  // Wire.setClock(400000);
+
+  // jupiter.begin();
+  // Serial.print("Temp:");
+  // Serial.println(jupiter.getTemp());
+
+  // lm75.startOneShotConversion();
+  // Serial.println("Waiting for conversion to be ready...");
+  // int waited_ms = 0;
+  // // while(!lm75.checkConversionReady()) {
+  // //   waited_ms++;
+  // //   delay(1);
+  // // }
+
+  // Serial.print("Conversion ready in ");
+  // Serial.print(waited_ms);
+  // Serial.print(" ms; temperature is: ");
+  // Serial.print(lm75.readTemperatureC());
+  // Serial.println(" C!");
+  // Serial.println();
+
+  lm75.enableShutdownMode();
   ParameterValue tokenId = MakeParamUint(1);
-  ParameterValue temp = MakeParamUint(2);
-  ParameterValue humid = MakeParamUint(3);
+  ParameterValue temp = MakeParamUint((uint32_t)(lm75.readTemperatureC()*100));
+  ParameterValue humid = MakeParamUint(0);
   ParameterValuesDictionary params;
   params.AddParameter("_tokenId", tokenId);
   params.AddParameter("_temp", temp);
@@ -218,7 +285,6 @@ void loop()
   Serial.println(callData);
 
   uint8_t hash[IOTEX_HASH_SIZE] = {0};
-
 
   responsetypes::ActionCore_Execution core;
   core.version = 1;
@@ -267,12 +333,16 @@ void loop()
   // Serial.println(callDataX.body);
   // Serial.print("Result: ");
   Serial.println(callDataX.url);
+  digitalWrite(led_wifi_pin, HIGH);
+  digitalWrite(led_cloud_pin, HIGH);
   post(callDataX.body);
 
   Serial.println("Program finished");
 
   // deepSleep for 30 seconds
-  ESP.deepSleep(30000000);
+  digitalWrite(led_wifi_pin, LOW);
+  digitalWrite(led_cloud_pin, LOW);
+  ESP.deepSleep(10000000);
   while (true)
   {
     delay(10000);

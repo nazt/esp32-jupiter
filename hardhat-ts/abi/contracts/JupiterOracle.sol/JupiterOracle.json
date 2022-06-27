@@ -8,6 +8,37 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "temp",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "humid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "AmbientChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "owner",
@@ -52,55 +83,6 @@
       }
     ],
     "name": "ApprovalForAll",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "pm1",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "pm10",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "pm2_5",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "temp",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "humid",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      }
-    ],
-    "name": "EnvironmentalChanged",
     "type": "event"
   },
   {
@@ -211,6 +193,25 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getTemp",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -410,27 +411,22 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "pm1",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "pm10",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "pm2_5",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
         "name": "temp",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
         "name": "humid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "field3",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "field4",
         "type": "uint256"
       },
       {
@@ -476,23 +472,21 @@
   {
     "inputs": [
       {
+        "internalType": "bool",
+        "name": "saleIsActive_",
+        "type": "bool"
+      }
+    ],
+    "name": "setSaleIsActive",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "_tokenId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_pm1",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_pm10",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_pm2_5",
         "type": "uint256"
       },
       {
@@ -504,27 +498,9 @@
         "internalType": "uint256",
         "name": "_humid",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_refTimestamp",
-        "type": "uint256"
       }
     ],
-    "name": "setEnvironment",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bool",
-        "name": "saleIsActive_",
-        "type": "bool"
-      }
-    ],
-    "name": "setSaleIsActive",
+    "name": "setTempAndHumid",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

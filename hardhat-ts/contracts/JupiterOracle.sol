@@ -10,41 +10,38 @@ import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-contract OracleNFT is ERC721Enumerable, IERC2981, ReentrancyGuard, Ownable {
+contract JupiterOracle is ERC721Enumerable, IERC2981, ReentrancyGuard, Ownable {
     using Counters for Counters.Counter;
 
+    // struct Sensor {
+    //     mapping(address => bool) claimed;
+    //     Counters.Counter supply;
+    // }
     struct Sensor {
-        uint256 pm1;
-        uint256 pm10;
-        uint256 pm2_5;
         uint256 temp;
         uint256 humid;
+        uint256 field3;
+        uint256 field4;
         uint256 timestamp;
     }
 
     mapping(uint256 => Sensor) public sensors;
+    event AmbientChanged(uint256 id, uint256 temp, uint256 humid, uint256 timestamp);
 
-    event EnvironmentalChanged(uint256 id, uint256 pm1, uint256 pm10, uint256 pm2_5, uint256 temp, uint256 humid, uint256 timestamp);
-
-
-    constructor() ERC721("OracleNFT", "ORC") {
-        customBaseURI = "";
+    constructor() ERC721("JupiterOracle", "ORC") {
+        customBaseURI = "https://dustboy-metadata.laris.workers.dev/";
     }
 
-    function setEnvironment(uint256 _tokenId, uint256 _pm1, uint256 _pm10, uint256 _pm2_5, uint256 _temp, uint256 _humid, uint256 _refTimestamp) public {
-        if (_refTimestamp == 0) {
-            _refTimestamp = block.timestamp;
-        }
-        sensors[_tokenId].pm1 = _pm1;
-        sensors[_tokenId].pm10 = _pm10;
-        sensors[_tokenId].pm2_5 = _pm2_5;
+    function setTempAndHumid(uint256 _tokenId, uint256 _temp, uint256 _humid) public {
         sensors[_tokenId].temp = _temp;
         sensors[_tokenId].humid = _humid;
-        sensors[_tokenId].timestamp = _refTimestamp;
-        emit EnvironmentalChanged(_tokenId, _pm1, _pm10, _pm2_5, _temp, _humid, _refTimestamp);
+        sensors[_tokenId].timestamp = block.timestamp;
+        emit AmbientChanged(_tokenId, _temp, _humid, block.timestamp);
     }
 
-
+    function getTemp(uint256 _tokenId) public view returns (uint256) {
+        return sensors[_tokenId].temp;
+    }
 
     /** MINTING **/
 

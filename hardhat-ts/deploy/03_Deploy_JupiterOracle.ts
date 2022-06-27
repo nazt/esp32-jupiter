@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { from } from "@iotexproject/iotex-address-ts";
 
-const TAG = 'OracleNFT'
+const TAG = 'JupiterOracle'
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployments, getNamedAccounts, network } = hre
     const { deploy, execute } = deployments
@@ -20,8 +20,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`ethAddress: ${from(result.address).stringEth()}`)
     console.log(`iotexAddress: ${from(result.address).string()}`)
 
-    // const receipt = await execute("OracleNFT", {from: deployer}, "mint", [1])
-    // console.log('minted at', receipt.transactionHash)
+    const receipt = await execute("JupiterOracle", {from: deployer}, "mint", [1])
+    console.log('minted at', receipt.transactionHash)
 
     console.log(
         `npx hardhat verify ${result.address} ${args
